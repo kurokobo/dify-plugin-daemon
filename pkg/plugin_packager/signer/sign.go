@@ -3,6 +3,7 @@ package signer
 import (
 	"archive/zip"
 	"bytes"
+	"crypto/rsa"
 	"crypto/sha256"
 	"encoding/base64"
 	"io"
@@ -23,7 +24,7 @@ import (
 */
 
 // SignPlugin is a function that signs a plugin
-// It takes a plugin as a stream of bytes and signs it with RSA-4096
+// It takes a plugin as a stream of bytes and signs it with RSA-4096 with a bundled private key
 func SignPlugin(plugin []byte) ([]byte, error) {
 	// load private key
 	privateKey, err := encryption.LoadPrivateKey(private_key.PRIVATE_KEY)
@@ -31,6 +32,12 @@ func SignPlugin(plugin []byte) ([]byte, error) {
 		return nil, err
 	}
 
+	return SignPluginWithPrivateKey(plugin, privateKey)
+}
+
+// SignPluginWithPrivateKey is a function that signs a plugin
+// It takes a plugin as a stream of bytes and a private key to sign it with RSA-4096
+func SignPluginWithPrivateKey(plugin []byte, privateKey *rsa.PrivateKey) ([]byte, error) {
 	decoder, err := decoder.NewZipPluginDecoder(plugin)
 	if err != nil {
 		return nil, err
