@@ -10,13 +10,12 @@ concurrency:
 
 jobs:
   build:
-    runs-on: ${{ matrix.platform == 'linux/arm64' && 'arm64_runner' || 'ubuntu-latest' }}
-    if: github.repository == 'langgenius/dify-plugin-daemon'
+    runs-on: ubuntu-latest
+    if: github.repository == 'kurokobo/dify-plugin-daemon'
     strategy:
       matrix:
         include:
           - platform: linux/amd64
-          - platform: linux/arm64
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -33,6 +32,9 @@ jobs:
 
       - name: Build CLI
         run: |
+          if [ ! -f ./internal/core/license/private_key/PRIVATE_KEY.pem ]; then
+            touch ./internal/core/license/private_key/PRIVATE_KEY.pem
+          fi
           go mod tidy
           GOOS=windows GOARCH=${{ env.GOARCH }} go build -ldflags "-X 'main.VersionX=v${{ github.event.release.tag_name }}'" -o dify-plugin-windows-${{ env.GOARCH }}.exe ./cmd/commandline
           GOOS=darwin GOARCH=${{ env.GOARCH }} go build -ldflags "-X 'main.VersionX=v${{ github.event.release.tag_name }}'" -o dify-plugin-darwin-${{ env.GOARCH }} ./cmd/commandline
