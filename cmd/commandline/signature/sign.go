@@ -8,7 +8,7 @@ import (
 
 	"github.com/langgenius/dify-plugin-daemon/internal/utils/encryption"
 	"github.com/langgenius/dify-plugin-daemon/internal/utils/log"
-	"github.com/langgenius/dify-plugin-daemon/pkg/plugin_packager/signer"
+	"github.com/langgenius/dify-plugin-daemon/pkg/plugin_packager/signer/withkey"
 )
 
 func Sign(difypkgPath string, privateKeyPath string) {
@@ -32,7 +32,7 @@ func Sign(difypkgPath string, privateKeyPath string) {
 	}
 
 	// sign the plugin
-	pluginFile, err := signer.SignPluginWithPrivateKey(plugin, privateKey)
+	pluginFile, err := withkey.SignPluginWithPrivateKey(plugin, privateKey)
 	if err != nil {
 		log.Error("Failed to sign plugin: %v", err)
 		return
