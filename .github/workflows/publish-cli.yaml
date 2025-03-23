@@ -32,9 +32,6 @@ jobs:
 
       - name: Build CLI
         run: |
-          if [ ! -f ./internal/core/license/private_key/PRIVATE_KEY.pem ]; then
-            touch ./internal/core/license/private_key/PRIVATE_KEY.pem
-          fi
           go mod tidy
           GOOS=windows GOARCH=${{ env.GOARCH }} go build -ldflags "-X 'main.VersionX=v${{ github.event.release.tag_name }}'" -o dify-plugin-windows-${{ env.GOARCH }}.exe ./cmd/commandline
           GOOS=darwin GOARCH=${{ env.GOARCH }} go build -ldflags "-X 'main.VersionX=v${{ github.event.release.tag_name }}'" -o dify-plugin-darwin-${{ env.GOARCH }} ./cmd/commandline
