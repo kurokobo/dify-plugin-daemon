@@ -29,11 +29,10 @@ func VerifyPlugin(decoder PluginDecoder) error {
 	publicKeys = append(publicKeys, officialPublicKey)
 
 	// load keys specified in environment variable if third party signature verification is enabled
-	enableThirdPartySignatureVerification := strings.ToLower(os.Getenv("ENABLE_THIRD_PARTY_SIGNATURE_VERIFICATION")) == "true"
-	if enableThirdPartySignatureVerification {
-		signatureVerificationPublicKeys := os.Getenv("THIRD_PARTY_SIGNATURE_VERIFICATION_PUBLIC_KEYS")
-		if signatureVerificationPublicKeys != "" {
-			keyPaths := strings.Split(signatureVerificationPublicKeys, ",")
+	if strings.ToLower(os.Getenv("THIRD_PARTY_SIGNATURE_VERIFICATION_ENABLED")) == "true" {
+		thirdPartyPublicKeys := os.Getenv("THIRD_PARTY_SIGNATURE_VERIFICATION_PUBLIC_KEYS")
+		if thirdPartyPublicKeys != "" {
+			keyPaths := strings.Split(thirdPartyPublicKeys, ",")
 			for _, keyPath := range keyPaths {
 				keyBytes, err := os.ReadFile(strings.TrimSpace(keyPath))
 				if err != nil {
