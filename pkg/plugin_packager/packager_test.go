@@ -27,6 +27,61 @@ var ignored []byte
 //go:embed testdata/_assets/test.svg
 var test_svg []byte
 
+// createMinimalPlugin creates a minimal test plugin and returns the zip file
+func createMinimalPlugin(t *testing.T) []byte {
+	// create a temp directory
+	os.RemoveAll("temp")
+	if err := os.Mkdir("temp", 0755); err != nil {
+		t.Errorf("failed to create temp directory: %s", err.Error())
+		return nil
+	}
+	defer func() {
+		os.RemoveAll("temp")
+		os.Remove("temp")
+	}()
+
+	// create basic files
+	if err := os.WriteFile("temp/manifest.yaml", manifest, 0644); err != nil {
+		t.Errorf("failed to write manifest: %s", err.Error())
+		return nil
+	}
+
+	if err := os.WriteFile("temp/neko.yaml", neko, 0644); err != nil {
+		t.Errorf("failed to write neko: %s", err.Error())
+		return nil
+	}
+
+	// create _assets directory and files
+	if err := os.MkdirAll("temp/_assets", 0755); err != nil {
+		t.Errorf("failed to create _assets directory: %s", err.Error())
+		return nil
+	}
+
+	if err := os.WriteFile("temp/_assets/test.svg", test_svg, 0644); err != nil {
+		t.Errorf("failed to write test.svg: %s", err.Error())
+		return nil
+	}
+
+	// create decoder
+	originDecoder, err := decoder.NewFSPluginDecoder("temp")
+	if err != nil {
+		t.Errorf("failed to create decoder: %s", err.Error())
+		return nil
+	}
+
+	// create packager
+	packager := packager.NewPackager(originDecoder)
+
+	// pack
+	zip, err := packager.Pack(52428800)
+	if err != nil {
+		t.Errorf("failed to pack: %s", err.Error())
+		return nil
+	}
+
+	return zip
+}
+
 func TestPackagerAndVerifier(t *testing.T) {
 	// create a temp directory
 	os.RemoveAll("temp")
@@ -160,51 +215,9 @@ func TestPackagerAndVerifier(t *testing.T) {
 }
 
 func TestWrongSign(t *testing.T) {
-	// create a temp directory
-	if err := os.Mkdir("temp", 0755); err != nil {
-		t.Errorf("failed to create temp directory: %s", err.Error())
-		return
-	}
-	defer func() {
-		os.RemoveAll("temp")
-		os.Remove("temp")
-	}()
-
-	// create manifest
-	if err := os.WriteFile("temp/manifest.yaml", manifest, 0644); err != nil {
-		t.Errorf("failed to write manifest: %s", err.Error())
-		return
-	}
-
-	if err := os.WriteFile("temp/neko.yaml", neko, 0644); err != nil {
-		t.Errorf("failed to write neko: %s", err.Error())
-		return
-	}
-
-	// create _assets directory
-	if err := os.MkdirAll("temp/_assets", 0755); err != nil {
-		t.Errorf("failed to create _assets directory: %s", err.Error())
-		return
-	}
-
-	// create _assets/test.svg
-	if err := os.WriteFile("temp/_assets/test.svg", test_svg, 0644); err != nil {
-		t.Errorf("failed to write test.svg: %s", err.Error())
-		return
-	}
-
-	originDecoder, err := decoder.NewFSPluginDecoder("temp")
-	if err != nil {
-		t.Errorf("failed to create decoder: %s", err.Error())
-		return
-	}
-
-	packager := packager.NewPackager(originDecoder)
-
-	// pack
-	zip, err := packager.Pack(52428800)
-	if err != nil {
-		t.Errorf("failed to pack: %s", err.Error())
+	// create a minimal test plugin
+	zip := createMinimalPlugin(t)
+	if zip == nil {
 		return
 	}
 
@@ -226,7 +239,7 @@ func TestWrongSign(t *testing.T) {
 		return
 	}
 
-	// verify
+	// verify (expected to fail)
 	err = decoder.VerifyPlugin(signedDecoder)
 	if err == nil {
 		t.Errorf("should fail to verify")
