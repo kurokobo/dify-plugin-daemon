@@ -11,12 +11,12 @@ import (
 	"github.com/langgenius/dify-plugin-daemon/internal/utils/log"
 )
 
-func GenerateKeyPair(keyPairName string) {
+func GenerateKeyPair(keyPairName string) error {
 	// generate a key pair
 	keyPair, err := rsa.GenerateKey(rand.Reader, 4096)
 	if err != nil {
 		log.Error("Failed to generate key pair: %v", err)
-		return
+		return err
 	}
 
 	// marshal the keys to PEM format
@@ -36,16 +36,18 @@ func GenerateKeyPair(keyPairName string) {
 	publicKeyPath := fmt.Sprintf("%s.public.pem", keyPairName)
 
 	if err := os.WriteFile(privateKeyPath, privateKeyPem, 0644); err != nil {
-		fmt.Printf("Failed to write private key: %v\n", err)
-		return
+		log.Error("Failed to write private key: %v", err)
+		return err
 	}
 
 	if err := os.WriteFile(publicKeyPath, publicKeyPem, 0644); err != nil {
-		fmt.Printf("Failed to write public key: %v\n", err)
-		return
+		log.Error("Failed to write public key: %v", err)
+		return err
 	}
 
 	log.Info("Key pair generated successfully")
 	log.Info("Private key: %s", privateKeyPath)
 	log.Info("Public key: %s", publicKeyPath)
+
+	return nil
 }
