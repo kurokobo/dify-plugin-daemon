@@ -1,6 +1,8 @@
 package main
 
 import (
+	"os"
+
 	"github.com/langgenius/dify-plugin-daemon/cmd/commandline/signature"
 	"github.com/spf13/cobra"
 )
@@ -16,7 +18,10 @@ var (
 			if keyPairName == "" {
 				keyPairName = "dify_plugin_signing_key"
 			}
-			signature.GenerateKeyPair(keyPairName)
+			err := signature.GenerateKeyPair(keyPairName)
+			if err != nil {
+				os.Exit(1)
+			}
 		},
 	}
 
@@ -28,7 +33,10 @@ var (
 		Run: func(c *cobra.Command, args []string) {
 			difypkgPath := args[0]
 			privateKeyPath := c.Flag("private_key").Value.String()
-			signature.Sign(difypkgPath, privateKeyPath)
+			err := signature.Sign(difypkgPath, privateKeyPath)
+			if err != nil {
+				os.Exit(1)
+			}
 		},
 	}
 
@@ -40,7 +48,10 @@ var (
 		Run: func(c *cobra.Command, args []string) {
 			difypkgPath := args[0]
 			publicKeyPath := c.Flag("public_key").Value.String()
-			signature.Verify(difypkgPath, publicKeyPath)
+			err := signature.Verify(difypkgPath, publicKeyPath)
+			if err != nil {
+				os.Exit(1)
+			}
 		},
 	}
 )
@@ -49,7 +60,7 @@ func init() {
 	signatureCommand.AddCommand(signatureGenerateCommand)
 	signatureCommand.AddCommand(signatureSignCommand)
 	signatureCommand.AddCommand(signatureVerifyCommand)
-	
+
 	signatureGenerateCommand.Flags().StringP("filename", "f", "", "filename of the key pair")
 
 	signatureSignCommand.Flags().StringP("private_key", "p", "", "private key file")
